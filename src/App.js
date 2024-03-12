@@ -238,9 +238,14 @@ export default function App() {
             `https://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${searchQuery}`
           );
           console.log(`res.ok: ${res.ok}`);
+
           if (!res.ok)
             throw new Error("Something went wrong while fetching movies");
+
           const data = await res.json();
+
+          if (data.Response === "False") throw new Error("Movie not found");
+          // console.log(data);
           setMovies(data.Search);
         }
       } catch (error) {
