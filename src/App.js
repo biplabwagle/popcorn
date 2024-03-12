@@ -210,26 +210,46 @@ const Loader = () => {
   return <p className="loading">Loading...</p>;
 };
 
+const ErrorMessage = ({ message }) => {
+  return (
+    <p className="error">
+      <span>🙈</span>
+      <span>{message}</span>
+    </p>
+  );
+};
+
 export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
   //http://www.omdbapi.com/?i=tt3896198&apikey=e7e8e491
   //fetch function
+
   useEffect(() => {
     async function fetchMovies() {
-      setIsLoading(true);
-      if (searchQuery.length >= 1) {
-        const res = await fetch(
-          `https://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${searchQuery}`
-        );
-        const data = await res.json();
-        setMovies(data.Search);
+      try {
+        setIsLoading(true);
+        if (searchQuery.length >= 1) {
+          const res = await fetch(
+            `https://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${searchQuery}`
+          );
+          console.log(`res.ok: ${res.ok}`);
+          if (!res.ok)
+            throw new Error("Something went wrong while fetching movies");
+          const data = await res.json();
+          setMovies(data.Search);
+        }
+      } catch (error) {
+        console.log(error.message);
+        setError(error.message);
+      } finally {
         setIsLoading(false);
       }
     }
-
     fetchMovies();
   }, [searchQuery]);
 
@@ -242,7 +262,12 @@ export default function App() {
         <NumResults movies={movies} />
       </NavBar>
       <Main movies={movies}>
-        <Box>{isLoading ? <Loader /> : <MovieList movies={movies} />}</Box>
+        <Box>
+          {/* {isLoading ? <Loader /> : <MovieList movies={movies} />} */}
+          {isLoading && <Loader />}
+          {!isLoading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
+        </Box>
         <Box>
           <>
             <Summary watched={watched} />
