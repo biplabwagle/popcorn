@@ -1,5 +1,5 @@
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+const KEY = "e7e8e491";
 const tempMovieData = [
   {
     imdbID: "tt1375666",
@@ -62,15 +62,15 @@ const Logo = () => {
   );
 };
 
-const Search = () => {
-  const [query, setQuery] = useState("");
+const Search = ({ searchQuery, setSearchQuery }) => {
+  // const [query, setQuery] = useState("");
   return (
     <input
       className="search"
       type="text"
       placeholder="Search movies..."
-      value={query}
-      onChange={(e) => setQuery(e.target.value)}
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
     />
   );
 };
@@ -78,7 +78,7 @@ const Search = () => {
 const NumResults = ({ movies }) => {
   return (
     <p className="num-results">
-      Found <strong>{movies.length}</strong> results
+      Found <strong>{movies?.length || 0} </strong> results
     </p>
   );
 };
@@ -206,20 +206,43 @@ const Main = ({ children }) => {
   return <main className="main">{children}</main>;
 };
 
+const Loader = () => {
+  return <p className="loading">Loading...</p>;
+};
+
 export default function App() {
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  //http://www.omdbapi.com/?i=tt3896198&apikey=e7e8e491
+  //fetch function
+  useEffect(() => {
+    async function fetchMovies() {
+      setIsLoading(true);
+      if (searchQuery.length >= 1) {
+        const res = await fetch(
+          `https://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${searchQuery}`
+        );
+        const data = await res.json();
+        setMovies(data.Search);
+        setIsLoading(false);
+      }
+    }
+
+    fetchMovies();
+  }, [searchQuery]);
+
+  //end of fetch function
   return (
     <>
       <NavBar movies={movies}>
         <Logo />
-        <Search />
+        <Search searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
         <NumResults movies={movies} />
       </NavBar>
       <Main movies={movies}>
-        <Box>
-          <MovieList movies={movies} />
-        </Box>
+        <Box>{isLoading ? <Loader /> : <MovieList movies={movies} />}</Box>
         <Box>
           <>
             <Summary watched={watched} />
