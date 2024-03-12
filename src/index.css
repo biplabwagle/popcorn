@@ -58,7 +58,7 @@ body {
   position: relative;
 }
 
-.loader {
+.loading {
   text-align: center;
   text-transform: uppercase;
   font-size: 2rem;
