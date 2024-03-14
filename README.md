@@ -6,6 +6,10 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ### You will need an api to run the project
 
+I am running the abdp api in the application. You can go to the following link
+to get the omdb api key. You will need to signup for the apikey.Its free
+https://www.omdbapi.com/?apikey=
+
 In the project directory, you can run:
 
 ### Downloading and initial setup
