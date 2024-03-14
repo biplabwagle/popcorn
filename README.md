@@ -7,8 +7,11 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ### You will need an api to run the project
 
 In the project directory, you can run:
+
 ### Downloading and initial setup
+
 Download the project and run npm install to install needed dependencies
+
 ### `npm start`
 
 Runs the app in the development mode.\
