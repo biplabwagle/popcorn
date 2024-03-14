@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
-const KEY = "e7e8e491";
+const apiUrl = process.env.REACT_APP_API_URL;
+const apiKey = process.env.REACT_APP_API_KEY;
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -29,9 +30,9 @@ const Search = ({ searchQuery, setSearchQuery }) => {
 
   const inputFocusRef = useRef(null);
   useEffect(() => {
-    console.log(inputFocusRef.current);
-    console.log(document.activeElement);
+    //if currently selected element is input then just return
     if (document.activeElement === inputFocusRef.current) return;
+    //callback function to check the keystrokes
     function callback(e) {
       if (e.code === "Enter") {
         inputFocusRef.current.focus();
@@ -39,7 +40,9 @@ const Search = ({ searchQuery, setSearchQuery }) => {
       }
     }
 
+    //addEventListener to trigger on enter keydown
     document.addEventListener("keydown", callback);
+    //cleanup function to remove EventListener
     return () => document.removeEventListener("keydown", callback);
   }, [setSearchQuery]);
 
@@ -227,6 +230,12 @@ function SelectedMovie({
   const [movie, setMovie] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState("");
+  const countRef = useRef(0);
+
+  useEffect(() => {
+    if (userRating) countRef.current = countRef.current + 1;
+  }, [userRating]);
+
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
   const {
     Title: title,
@@ -261,9 +270,7 @@ function SelectedMovie({
     const getMovieDetails = async () => {
       try {
         setIsLoading(true);
-        const res = await fetch(
-          `https://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`
-        );
+        const res = await fetch(`${apiUrl}${apiKey}&i=${selectedId}`);
         const data = await res.json();
 
         setMovie(data);
@@ -294,6 +301,7 @@ function SelectedMovie({
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ").at(0)),
       userRating,
+      countRatingDecisions: countRef.current,
     };
     handleAddWatched(newWatchedMovie);
     handleCloseMovie();
@@ -392,9 +400,8 @@ export default function App() {
     localStorage.setItem("watched", JSON.stringify(watched));
   }, [watched]);
 
-  //http://www.omdbapi.com/?i=tt3896198&apikey=e7e8e491
-  //fetch function
-
+  //stop fetch on each keystroke using abort controller
+  //fetch the api based on searchquery and change the state, handle error respectively
   useEffect(() => {
     const controller = new AbortController();
     async function fetchMovies() {
@@ -402,10 +409,9 @@ export default function App() {
         setIsLoading(true);
         setError("");
         if (searchQuery.length >= 1) {
-          const res = await fetch(
-            `https://www.omdbapi.com/?apikey=${KEY}&s=${searchQuery}`,
-            { signal: controller.signal }
-          );
+          const res = await fetch(`${apiUrl}${apiKey}&s=${searchQuery}`, {
+            signal: controller.signal,
+          });
 
           if (!res.ok)
             throw new Error("Something went wrong while fetching movies");
