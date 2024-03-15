@@ -21,15 +21,6 @@ const Logo = () => {
 };
 
 const Search = ({ searchQuery, setSearchQuery }) => {
-  //This is not the way to select elements
-  // useEffect(() => {
-  //   const el = document.querySelector(".search"); //food for thought : This manipulates the DOM directly
-  //which is not a good idea...
-  //   el.focus();
-  // }, []);
-
-  // we use refs together with useEffect to achieve this
-
   const inputFocusRef = useRef(null);
   useEffect(() => {
     //if currently selected element is input then just return
@@ -79,28 +70,6 @@ const Box = ({ children }) => {
     </div>
   );
 };
-
-// const WatchedBox = () => {
-//   const [watched, setWatched] = useState(tempWatchedData);
-//   const [isOpen2, setIsOpen2] = useState(true);
-
-//   return (
-//     <div className="box">
-//       <button
-//         className="btn-toggle"
-//         onClick={() => setIsOpen2((open) => !open)}
-//       >
-//         {isOpen2 ? "–" : "+"}
-//       </button>
-//       {isOpen2 && (
-//         <>
-//           <Summary watched={watched} />
-//           <WatchedMovieList watched={watched} />
-//         </>
-//       )}
-//     </div>
-//   );
-// };
 
 const MovieList = ({ movies, handleSelected }) => {
   return (
@@ -396,11 +365,6 @@ export default function App() {
     event.stopPropagation();
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
-
-  //stop fetch on each keystroke using abort controller
-  //fetch the api based on searchquery and change the state, handle error respectively
-
-  //end of fetch function
   return (
     <>
       <NavBar movies={movies}>
