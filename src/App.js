@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
 import { useLocalStorageState } from "./useLocalStorageState";
+import { useKey } from "./useKey";
 const API_URL = process.env.REACT_APP_API_URL;
 const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -21,32 +22,12 @@ const Logo = () => {
 };
 
 const Search = ({ searchQuery, setSearchQuery }) => {
-  //This is not the way to select elements
-  // useEffect(() => {
-  //   const el = document.querySelector(".search"); //food for thought : This manipulates the DOM directly
-  //which is not a good idea...
-  //   el.focus();
-  // }, []);
-
-  // we use refs together with useEffect to achieve this
-
   const inputFocusRef = useRef(null);
-  useEffect(() => {
-    //if currently selected element is input then just return
+  useKey(() => {
     if (document.activeElement === inputFocusRef.current) return;
-    //callback function to check the keystrokes
-    function callback(e) {
-      if (e.code === "Enter") {
-        inputFocusRef.current.focus();
-        setSearchQuery("");
-      }
-    }
-
-    //addEventListener to trigger on enter keydown
-    document.addEventListener("keydown", callback);
-    //cleanup function to remove EventListener
-    return () => document.removeEventListener("keydown", callback);
-  }, [setSearchQuery]);
+    inputFocusRef.current.focus();
+    setSearchQuery("");
+  }, "Enter");
 
   return (
     <input
@@ -232,6 +213,7 @@ function SelectedMovie({
   const [movie, setMovie] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState("");
+  useKey(handleCloseMovie, "Escape");
   const countRef = useRef(0);
 
   useEffect(() => {
@@ -251,20 +233,6 @@ function SelectedMovie({
     Director: director,
     Genre: genre,
   } = movie;
-
-  //Listen to global escape keypress using useEffect
-  useEffect(() => {
-    const escapeListener = (e) => {
-      if (e.code === "Escape") {
-        handleCloseMovie();
-      }
-    };
-    document.addEventListener("keydown", escapeListener);
-
-    return () => {
-      document.removeEventListener("keydown", escapeListener);
-    };
-  }, [handleCloseMovie]);
 
   //fetching api request based on the id of the movie selected from the
   //movie list on the left side of the User Interface
