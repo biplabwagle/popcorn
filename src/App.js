@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
-const apiUrl = process.env.REACT_APP_API_URL;
-const apiKey = process.env.REACT_APP_API_KEY;
+import { useMovies } from "./useMovies";
+import { useLocalStorageState } from "./useLocalStorageState";
+const API_URL = process.env.REACT_APP_API_URL;
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -270,7 +272,7 @@ function SelectedMovie({
     const getMovieDetails = async () => {
       try {
         setIsLoading(true);
-        const res = await fetch(`${apiUrl}${apiKey}&i=${selectedId}`);
+        const res = await fetch(`${API_URL}${API_KEY}&i=${selectedId}`);
         const data = await res.json();
 
         setMovie(data);
@@ -364,18 +366,17 @@ function SelectedMovie({
 }
 
 export default function App() {
-  const [movies, setMovies] = useState([]);
   // const [watched, setWatched] = useState([]); //Reading the local storage instead for lazy loading
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
-
+  const { movies, isLoading, error } = useMovies(
+    searchQuery,
+    API_KEY,
+    API_URL,
+    handleCloseMovie
+  );
   //Read from local storage
-  const [watched, setWatched] = useState(() => {
-    const storedValue = localStorage.getItem("watched");
-    return JSON.parse(storedValue);
-  });
+  const [watched, setWatched] = useLocalStorageState([], "watched");
 
   function handleSelected(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
@@ -395,57 +396,9 @@ export default function App() {
     event.stopPropagation();
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
-  //Local storage using useEffect
-  useEffect(() => {
-    localStorage.setItem("watched", JSON.stringify(watched));
-  }, [watched]);
 
   //stop fetch on each keystroke using abort controller
   //fetch the api based on searchquery and change the state, handle error respectively
-  useEffect(() => {
-    const controller = new AbortController();
-    async function fetchMovies() {
-      try {
-        setIsLoading(true);
-        setError("");
-        if (searchQuery.length >= 1) {
-          const res = await fetch(`${apiUrl}${apiKey}&s=${searchQuery}`, {
-            signal: controller.signal,
-          });
-
-          if (!res.ok)
-            throw new Error("Something went wrong while fetching movies");
-
-          const data = await res.json();
-
-          if (data.Error && data.Response === "False") {
-            throw new Error(data.Error || "Please type in a different query");
-          }
-
-          setMovies(data.Search);
-          setError("");
-        }
-      } catch (error) {
-        if (error.name !== "AbortError") {
-          console.log(error.message);
-          setError(error.message);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    if (searchQuery.length < 3) {
-      setMovies([]);
-      return;
-    }
-    handleCloseMovie();
-    fetchMovies();
-
-    return () => {
-      controller.abort();
-    };
-  }, [searchQuery]);
 
   //end of fetch function
   return (
